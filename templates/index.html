@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Capture d'écran du navigateur</title>
+    <title>Browser Screenshot Tool</title>
     <link
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
@@ -24,7 +24,7 @@
   <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
       <h1 class="text-3xl font-bold text-center mb-8">
-        Capture d'écran du navigateur
+        Browser Screenshot Tool
       </h1>
 
       <div class="bg-white p-6 rounded-lg shadow-md">
@@ -37,7 +37,7 @@
               type="url"
               id="url"
               name="url"
-              value="https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard"
+              value="https://google.com"
               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -46,7 +46,7 @@
             type="submit"
             class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg"
           >
-            Prendre une capture d'écran
+            Take Screenshot
           </button>
         </form>
 
@@ -71,7 +71,7 @@
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <span class="text-lg text-gray-700">Capture d'écran en cours...</span>
+          <span class="text-lg text-gray-700">Taking screenshot...</span>
         </div>
 
         <div
@@ -80,13 +80,13 @@
         ></div>
 
         <div id="screenshot" class="hidden mt-6">
-          <h2 class="text-xl font-semibold mb-4">Résultat :</h2>
+          <h2 class="text-xl font-semibold mb-4">Result:</h2>
           <div class="screenshot-container border rounded-lg p-2">
             <img
               id="screenshot-image"
               class="screenshot-image mx-auto"
               src=""
-              alt="Capture d'écran"
+              alt="Screenshot"
             />
           </div>
         </div>
@@ -132,13 +132,13 @@
               // Show error
               errorEl.textContent =
                 data.error ||
-                "Une erreur est survenue lors de la capture d'écran.";
+                "An error occurred while capturing the screenshot.";
               errorEl.classList.remove("hidden");
             }
           } catch (error) {
             // Show error
             errorEl.textContent =
-              "Une erreur est survenue lors de la connexion au serveur.";
+              "An error occurred while connecting to the server.";
             errorEl.classList.remove("hidden");
             console.error(error);
           } finally {
