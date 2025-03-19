@@ -14,11 +14,11 @@ RUN apt-get update && apt-get install -y \
     && pip install poetry
 
 # Copy poetry configuration and README
-COPY pyproject.toml poetry.lock* README.md ./
+COPY pyproject.toml poetry.lock* README.md* ./
 
 # Install Python dependencies using Poetry
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --only main
+    && poetry install --no-interaction --no-ansi --only main --no-root
 
 # Install Playwright browsers
 RUN playwright install chromium && \
