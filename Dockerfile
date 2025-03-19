@@ -39,27 +39,21 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi --only main --no-root
 
-# Setup user permissions for Playwright cache
-RUN mkdir -p /home/user/.cache && \
-    chown -R user:user /home/user
+# Install Playwright browsers as root
+RUN playwright install chromium && \
+    playwright install-deps chromium
 
-# Switch to non-root user for browser installation
-USER user
-
-# Install Playwright browsers correctly with the user that will run the app
-RUN playwright install chromium --with-deps
-
-# Switch back to root for directory creation
-USER root
-
-# Create directories
-RUN mkdir -p static templates screenshots && \
-    chown -R user:user /app
+# Create directories and set permissions
+RUN mkdir -p static templates screenshots /home/user/.cache && \
+    chown -R user:user /app /home/user/.cache
 
 # Copy application code
 COPY app /app/app
 COPY templates /app/templates
 COPY static /app/static
+
+# Make sure all files are owned by user
+RUN chown -R user:user /app
 
 # Environment variables
 ENV PORT=7860 \
