@@ -46,23 +46,43 @@ async def take_screenshot(url: str = Form(...)):
         filename = f"{uuid.uuid4()}.png"
         filepath = str(screenshots_path / filename)
         
+        # Log browser executable paths
+        logger.info(f"HOME env: {os.environ.get('HOME')}")
+        logger.info(f"Current working directory: {os.getcwd()}")
+        
         # Take the screenshot with Playwright
         async with async_playwright() as p:
             # Configuration adaptée pour l'environnement Docker
             browser = await p.chromium.launch(
                 headless=True,
-                args=['--no-sandbox', '--disable-dev-shm-usage']
+                args=[
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--single-process',
+                    '--disable-gpu'
+                ],
+                executable_path=None  # Utiliser le chemin par défaut
             )
-            page = await browser.new_page()
+            
+            logger.info("Browser launched successfully")
+            page = await browser.new_page(viewport={"width": 1280, "height": 720})
             
             try:
+                logger.info(f"Navigating to URL: {url}")
                 await page.goto(url, wait_until="networkidle", timeout=60000)
+                logger.info("Navigation complete, taking screenshot")
                 await page.screenshot(path=filepath)
+                logger.info(f"Screenshot saved to {filepath}")
             except Exception as e:
                 logger.error(f"Error during page navigation or screenshot: {str(e)}")
                 raise
             finally:
                 await browser.close()
+                logger.info("Browser closed")
         
         return JSONResponse({
             "success": True,
