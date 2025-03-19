@@ -10,70 +10,70 @@ pinned: false
 
 # Minimal Browser Screenshot Experiment
 
-Cette application web permet de prendre des captures d'écran de sites web en utilisant un navigateur headless et de les afficher directement dans l'interface utilisateur.
+This web application allows taking screenshots of websites using a headless browser and displaying them directly in the user interface.
 
-## Fonctionnalités
+## Features
 
-- Interface web simple et réactive
-- Saisie d'URL avec valeur par défaut pointant vers le Open LLM Leaderboard
-- Capture d'écran via Playwright (navigateur Chromium)
-- Affichage du résultat dans l'interface
+- Simple and responsive web interface
+- URL input with default value pointing to Open LLM Leaderboard
+- Screenshot capture via Playwright (Chromium browser)
+- Display of results in the interface
 
-## Technologies utilisées
+## Technologies Used
 
 - **Backend**: FastAPI, Playwright
-- **Frontend**: HTML/JS avec Tailwind CSS
-- **Gestion des dépendances**: Poetry
-- **Déploiement**: Docker, Hugging Face Spaces
+- **Frontend**: HTML/JS with Tailwind CSS
+- **Dependency Management**: Poetry
+- **Deployment**: Docker, Hugging Face Spaces
 
-## Installation locale
+## Local Installation
 
-### Prérequis
+### Prerequisites
 
 - Python 3.10+
 - Poetry
-- Docker (optionnel)
+- Docker (optional)
 
-### Installation avec Poetry
+### Installation with Poetry
 
 ```bash
-# Cloner le dépôt
-git clone [url-du-repo]
+# Clone the repository
+git clone [repo-url]
 cd minimal-browser-screenshot-experiment
 
-# Installer les dépendances
+# Install dependencies
 poetry install
 
-# Installer les navigateurs Playwright
+# Install Playwright browsers
 poetry run playwright install chromium
 poetry run playwright install-deps chromium
 
-# Lancer l'application
+# Launch the application
 poetry run uvicorn app.server:app --host 0.0.0.0 --port 7860
 ```
 
-### Utilisation avec Docker
+### Using Docker
 
 ```bash
-# Construire l'image Docker
+# Build the Docker image
 docker build -t minimal-browser-screenshot .
 
-# Lancer le conteneur
+# Run the container
 docker run -p 7860:7860 minimal-browser-screenshot
 ```
 
-## Déploiement sur Hugging Face Spaces
+## Deployment on Hugging Face Spaces
 
-Cette application est conçue pour être facilement déployée sur un Hugging Face Space.
+This application is designed to be easily deployed on a Hugging Face Space.
 
-1. Créez un nouveau Space de type Docker
-2. Associez ce dépôt GitHub à votre Space
-3. Le Space utilisera automatiquement le Dockerfile fourni pour construire et déployer l'application
+1. Create a new Docker-type Space
+2. Associate this GitHub repository with your Space
+3. The Space will automatically use the provided Dockerfile to build and deploy the application
 
-## Utilisation
+## Usage
 
-1. Accédez à l'application via votre navigateur
-2. Entrez l'URL du site dont vous souhaitez prendre une capture d'écran (par défaut: Open LLM Leaderboard)
-3. Cliquez sur "Prendre une capture d'écran"
-4. Attendez quelques secondes pour que le navigateur headless charge la page et prenne la capture
-5. La capture d'écran s'affiche dans l'interface
+1. Access the application through your browser
+2. Enter the URL of the site you want to screenshot (default: Open LLM Leaderboard)
+3. Click "Take a screenshot"
+4. Wait a few seconds for the headless browser to load the page and take the screenshot
+5. The screenshot appears in the interface

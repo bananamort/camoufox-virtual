@@ -52,7 +52,7 @@ async def take_screenshot(url: str = Form(...)):
         
         # Take the screenshot with Playwright
         async with async_playwright() as p:
-            # Configuration adaptée pour l'environnement Docker
+            # Configuration adapted for Docker environment
             browser = await p.chromium.launch(
                 headless=True,
                 args=[
@@ -65,7 +65,7 @@ async def take_screenshot(url: str = Form(...)):
                     '--single-process',
                     '--disable-gpu'
                 ],
-                executable_path=None  # Utiliser le chemin par défaut
+                executable_path=None  # Use default path
             )
             
             logger.info("Browser launched successfully")
