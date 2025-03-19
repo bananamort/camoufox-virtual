@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "minimal-browser-screenshot"
+version = "0.1.0"
+description = "Application qui prend des captures d'écran de sites web via un navigateur"
+authors = ["HuggingFace Team"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.103.1"
+uvicorn = "^0.23.2"
+jinja2 = "^3.1.2"
+python-multipart = "^0.0.6"
+playwright = "^1.39.0"
+aiofiles = "^23.2.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api" 
