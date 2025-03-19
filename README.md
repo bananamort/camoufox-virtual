@@ -1,3 +1,13 @@
+---
+title: minimal-browser-screenshot-experiment
+emoji: t
+colorFrom: blue
+colorTo: red
+sdk: docker
+app_file: app/server.py
+pinned: false
+---
+
 # Minimal Browser Screenshot Experiment
 
 Cette application web permet de prendre des captures d'écran de sites web en utilisant un navigateur headless et de les afficher directement dans l'interface utilisateur.
