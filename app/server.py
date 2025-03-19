@@ -48,11 +48,21 @@ async def take_screenshot(url: str = Form(...)):
         
         # Take the screenshot with Playwright
         async with async_playwright() as p:
-            browser = await p.chromium.launch()
+            # Configuration adaptée pour l'environnement Docker
+            browser = await p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox', '--disable-dev-shm-usage']
+            )
             page = await browser.new_page()
-            await page.goto(url, wait_until="networkidle")
-            await page.screenshot(path=filepath)
-            await browser.close()
+            
+            try:
+                await page.goto(url, wait_until="networkidle", timeout=60000)
+                await page.screenshot(path=filepath)
+            except Exception as e:
+                logger.error(f"Error during page navigation or screenshot: {str(e)}")
+                raise
+            finally:
+                await browser.close()
         
         return JSONResponse({
             "success": True,
