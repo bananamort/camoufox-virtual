@@ -35,7 +35,8 @@ COPY static /app/static
 
 # Environment variables
 ENV PORT=7860 \
-    HOST=0.0.0.0
+    HOST=0.0.0.0 \
+    PYTHONPATH=/app
 
 # Switch to non-root user
 USER user

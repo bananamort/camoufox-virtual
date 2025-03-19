@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from playwright.async_api import async_playwright
 import uuid
 import logging
+import pathlib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,13 +16,22 @@ logger = logging.getLogger(__name__)
 # Create FastAPI app
 app = FastAPI()
 
+# Determine base directory
+BASE_DIR = pathlib.Path(__file__).parent.parent
+
 # Set up templates and static files
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-os.makedirs("screenshots", exist_ok=True)
+templates_path = BASE_DIR / "templates"
+static_path = BASE_DIR / "static"
+screenshots_path = BASE_DIR / "screenshots"
+
+templates = Jinja2Templates(directory=str(templates_path))
+app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+
+# Create screenshots directory if it doesn't exist
+os.makedirs(str(screenshots_path), exist_ok=True)
 
 # Mount the screenshots directory
-app.mount("/screenshots", StaticFiles(directory="screenshots"), name="screenshots")
+app.mount("/screenshots", StaticFiles(directory=str(screenshots_path)), name="screenshots")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -34,7 +44,7 @@ async def take_screenshot(url: str = Form(...)):
     try:
         # Generate a unique filename
         filename = f"{uuid.uuid4()}.png"
-        filepath = f"screenshots/{filename}"
+        filepath = str(screenshots_path / filename)
         
         # Take the screenshot with Playwright
         async with async_playwright() as p:
