@@ -3,7 +3,6 @@ name = "minimal-browser-screenshot"
 version = "0.1.0"
 description = "Application qui prend des captures d'écran de sites web via un navigateur"
 authors = ["HuggingFace Team"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"

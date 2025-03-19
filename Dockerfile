@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y \
     && pip install --upgrade pip \
     && pip install poetry
 
-# Copy poetry configuration
-COPY pyproject.toml poetry.lock* ./
+# Copy poetry configuration and README
+COPY pyproject.toml poetry.lock* README.md ./
 
 # Install Python dependencies using Poetry
 RUN poetry config virtualenvs.create false \
