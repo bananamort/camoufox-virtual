@@ -1,6 +1,6 @@
 ---
 title: minimal-browser-screenshot-experiment
-emoji: t
+emoji: 💻
 colorFrom: blue
 colorTo: red
 sdk: docker
