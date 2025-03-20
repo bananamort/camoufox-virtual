@@ -1,5 +1,5 @@
 ---
-title: minimal-browser-screenshot-experiment
+title: minimal-playwright-experiment
 emoji: 💻
 colorFrom: blue
 colorTo: red
