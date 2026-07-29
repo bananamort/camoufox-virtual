@@ -169,6 +169,7 @@ async def launch_browser_context(
         window_size=(1920, 1080),
         viewport={"width": 1920, "height": 1080},
         extra_prefs=extra_prefs,
+        args=["-width", "1920", "-height", "1080"],
     ) as context:
         page = context.pages[0] if context.pages else await context.new_page()
         log.info(
@@ -187,6 +188,14 @@ async def run_interactive_instance(profile_label: str = "interactive") -> None:
         log.info("Navigating initial tab to about:blank")
         await page.goto("about:blank")
         while True:
+            try:
+                subprocess.run(
+                    ["wmctrl", "-r", ":ACTIVE:", "-b", "add,maximized_vert,maximized_horz"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                pass
             await asyncio.sleep(1)
 
 

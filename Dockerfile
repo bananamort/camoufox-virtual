@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for X11, VNC, Openbox, and Firefox/Camoufox
+# Install system dependencies for X11, VNC, Openbox, wmctrl, xdotool, and Firefox/Camoufox
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     gnupg \
@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xvfb \
     openbox \
     x11vnc \
+    wmctrl \
+    xdotool \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
