@@ -1,15 +1,16 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Create non-root user
-RUN useradd -m -u 1000 user
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies for X11, VNC, Openbox, and Firefox/Camoufox
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     gnupg \
     curl \
+    unzip \
+    xvfb \
+    openbox \
+    x11vnc \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
@@ -29,53 +30,26 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     libasound2 \
     libatspi2.0-0 \
-    && pip install --upgrade pip \
-    && pip install poetry
+    libgtk-3-0 \
+    libdbus-glib-1-2 \
+    libxt6 \
+    libpci3 \
+    fonts-noto-color-emoji \
+    fonts-freefont-ttf \
+    libharfbuzz-icu0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy poetry configuration
-COPY pyproject.toml poetry.lock* ./
+# Copy requirements and install python packages
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies using Poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --only main --no-root
+# Fetch Camoufox browser
+RUN python -m camoufox fetch
 
-# Create directories and set permissions
-RUN mkdir -p static templates screenshots /home/user/.cache && \
-    chown -R user:user /app /home/user/.cache
+# Copy application files
+COPY . .
 
-# Set HOME for the following Playwright install step
-ENV HOME=/home/user \
-    PYTHONPATH=/app
-
-# Switch to non-root user for browser installation
-USER user
-
-# Install Playwright browsers under the non-root user HOME directory
-RUN playwright install chromium
-
-# Switch back to root to copy files
-USER root
-
-# Copy application code
-COPY app /app/app
-COPY templates /app/templates
-COPY static /app/static
-
-# Install system dependencies for Playwright
-RUN apt-get update && apt-get install -y fonts-noto-color-emoji fonts-freefont-ttf libharfbuzz-icu0
-
-# Make sure all files are owned by user
-RUN chown -R user:user /app
-
-# Environment variables
-ENV PORT=7860 \
-    HOST=0.0.0.0
-
-# Switch to non-root user for running the app
-USER user
-
-# Expose the port
 EXPOSE 7860
 
-# Start command
-CMD ["uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "7860"]
+# Shell form allows reading Railway's $PORT env var dynamically (defaults to 7860)
+CMD ["sh", "-c", "uvicorn app.server:app --host 0.0.0.0 --port ${PORT:-7860}"]

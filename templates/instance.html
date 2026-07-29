@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Camoufox Interactive Browser</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --green: #10b981;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+    header { background: var(--panel); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+    .controls { display: flex; align-items: center; gap: 16px; }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 20px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+    .status.running .dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .status.stopped .dot { background: var(--red); }
+    .btn { padding: 8px 18px; border-radius: 8px; font-weight: 600; font-size: 0.875rem; border: none; cursor: pointer; transition: opacity 0.2s; }
+    .btn-start { background: var(--green); color: white; }
+    .btn-stop { background: var(--red); color: white; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    main { flex: 1; position: relative; background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    #vnc-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(15,23,42,0.9); z-index: 10; gap: 16px; }
+    .overlay.hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">🦊 Camoufox Browser Instance</div>
+    <div class="controls">
+      <div id="status-badge" class="status stopped">
+        <span class="dot"></span>
+        <span id="status-text">Stopped</span>
+      </div>
+      <button id="btn-start" class="btn btn-start" onclick="startInstance()">Start</button>
+      <button id="btn-stop" class="btn btn-stop" onclick="stopInstance()" disabled>Stop</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="vnc-container"></div>
+    <div id="overlay" class="overlay">
+      <h2>Browser Instance is Stopped</h2>
+      <p style="color: var(--muted);">Click "Start" to launch the browser on your virtual display.</p>
+      <button class="btn btn-start" onclick="startInstance()">Start Browser</button>
+    </div>
+  </main>
+
+  <script type="module">
+    import RFB from 'https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js';
+
+    let rfb = null;
+    const vncContainer = document.getElementById('vnc-container');
+    const overlay = document.getElementById('overlay');
+    const statusBadge = document.getElementById('status-badge');
+    const statusText = document.getElementById('status-text');
+    const btnStart = document.getElementById('btn-start');
+    const btnStop = document.getElementById('btn-stop');
+
+    async function checkStatus() {
+      try {
+        const res = await fetch('/api/instance/status');
+        const data = await res.json();
+        updateUI(data.status);
+        if (data.status === 'running' && !rfb) connectVNC();
+      } catch (err) {}
+    }
+
+    function updateUI(status) {
+      statusBadge.className = `status ${status}`;
+      statusText.innerText = status.charAt(0).toUpperCase() + status.slice(1);
+      if (status === 'running') {
+        btnStart.disabled = true;
+        btnStop.disabled = false;
+        overlay.classList.add('hidden');
+      } else {
+        btnStart.disabled = false;
+        btnStop.disabled = true;
+        overlay.classList.remove('hidden');
+        if (rfb) { try { rfb.disconnect(); } catch(e){} rfb = null; }
+      }
+    }
+
+    window.startInstance = async function() {
+      btnStart.disabled = true;
+      try {
+        const res = await fetch('/api/instance/start', { method: 'POST' });
+        const data = await res.json();
+        updateUI(data.status);
+        if (data.status === 'running') setTimeout(connectVNC, 1000);
+      } catch (err) {
+        alert("Failed to start browser: " + err);
+        updateUI('stopped');
+      }
+    };
+
+    window.stopInstance = async function() {
+      try {
+        const res = await fetch('/api/instance/stop', { method: 'POST' });
+        const data = await res.json();
+        updateUI(data.status);
+      } catch (err) {
+        alert("Failed to stop browser: " + err);
+      }
+    };
+
+    function connectVNC() {
+      if (rfb) return;
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/instance/websockify`;
+      try {
+        rfb = new RFB(vncContainer, wsUrl, { wsProtocols: ['binary'] });
+        rfb.scaleViewport = true;
+        rfb.resizeSession = true;
+        rfb.addEventListener('connect', () => overlay.classList.add('hidden'));
+        rfb.addEventListener('disconnect', () => { rfb = null; });
+      } catch (e) {
+        console.error("VNC connect error:", e);
+      }
+    }
+
+    checkStatus();
+    setInterval(checkStatus, 5000);
+  </script>
+</body>
+</html>

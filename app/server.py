@@ -1,102 +1,106 @@
 import os
 import asyncio
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from playwright.async_api import async_playwright
-import uuid
 import logging
 import pathlib
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-# Configure logging
+from app.browser import start_instance, stop_instance, is_instance_running
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
-app = FastAPI()
+app = FastAPI(title="Camoufox Interactive Browser Instance")
 
-# Determine base directory
 BASE_DIR = pathlib.Path(__file__).parent.parent
-
-# Set up templates and static files
 templates_path = BASE_DIR / "templates"
 static_path = BASE_DIR / "static"
-screenshots_path = BASE_DIR / "screenshots"
 
 templates = Jinja2Templates(directory=str(templates_path))
 app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
-# Create screenshots directory if it doesn't exist
-os.makedirs(str(screenshots_path), exist_ok=True)
 
-# Mount the screenshots directory
-app.mount("/screenshots", StaticFiles(directory=str(screenshots_path)), name="screenshots")
-
-@app.get("/", response_class=HTMLResponse)
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="instance.html")
 
-@app.post("/take-screenshot")
-async def take_screenshot(url: str = Form(...)):
-    logger.info(f"Taking screenshot of URL: {url}")
-    
-    try:
-        # Generate a unique filename
-        filename = f"{uuid.uuid4()}.png"
-        filepath = str(screenshots_path / filename)
-        
-        # Log browser executable paths
-        logger.info(f"HOME env: {os.environ.get('HOME')}")
-        logger.info(f"Current working directory: {os.getcwd()}")
-        
-        # Take the screenshot with Playwright
-        async with async_playwright() as p:
-            # Configuration adapted for Docker environment
-            browser = await p.chromium.launch(
-                headless=True,
-                args=[
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--single-process',
-                    '--disable-gpu'
-                ],
-                executable_path=None  # Use default path
-            )
-            
-            logger.info("Browser launched successfully")
-            page = await browser.new_page(viewport={"width": 1280, "height": 720})
-            
-            try:
-                logger.info(f"Navigating to URL: {url}")
-                await page.goto(url, wait_until="networkidle", timeout=60000)
-                logger.info("Navigation complete, taking screenshot")
-                await page.screenshot(path=filepath)
-                logger.info(f"Screenshot saved to {filepath}")
-            except Exception as e:
-                logger.error(f"Error during page navigation or screenshot: {str(e)}")
-                raise
-            finally:
-                await browser.close()
-                logger.info("Browser closed")
-        
-        return JSONResponse({
-            "success": True,
-            "screenshot_url": f"/screenshots/{filename}"
-        })
-    
-    except Exception as e:
-        logger.error(f"Error taking screenshot: {str(e)}")
-        return JSONResponse({
-            "success": False,
-            "error": str(e)
-        }, status_code=500)
 
-# Add a health check endpoint
+@app.api_route("/instance", methods=["GET", "HEAD"], response_class=HTMLResponse)
+async def read_instance(request: Request):
+    return templates.TemplateResponse(request=request, name="instance.html")
+
+
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"} 
+    return {"status": "ok"}
+
+
+@app.get("/api/instance/status")
+async def get_status():
+    status = "running" if is_instance_running() else "stopped"
+    return {"status": status}
+
+
+@app.post("/api/instance/start")
+async def api_start():
+    return start_instance()
+
+
+@app.post("/api/instance/stop")
+async def api_stop():
+    return stop_instance()
+
+
+@app.websocket("/instance/websockify")
+async def websocket_vnc_proxy(websocket: WebSocket):
+    if not is_instance_running():
+        await websocket.close(code=1000, reason="Browser not running")
+        return
+
+    subprotocols = websocket.headers.get("sec-websocket-protocol", "").split(",")
+    subprotocol = "binary" if "binary" in [s.strip() for s in subprotocols] else None
+    
+    await websocket.accept(subprotocol=subprotocol)
+
+    try:
+        reader, writer = await asyncio.open_connection("127.0.0.1", 5900)
+    except Exception as e:
+        logger.error("Failed to connect to local VNC port 5900: %s", e)
+        await websocket.close()
+        return
+
+    async def client_to_vnc():
+        try:
+            while True:
+                data = await websocket.receive_bytes()
+                writer.write(data)
+                await writer.drain()
+        except Exception:
+            pass
+
+    async def vnc_to_client():
+        try:
+            while True:
+                data = await reader.read(8192)
+                if not data:
+                    break
+                await websocket.send_bytes(data)
+        except Exception:
+            pass
+
+    try:
+        await asyncio.gather(client_to_vnc(), vnc_to_client())
+    except Exception:
+        pass
+    finally:
+        writer.close()
+        try:
+            await writer.wait_closed()
+        except Exception:
+            pass
+        try:
+            await websocket.close()
+        except Exception:
+            pass

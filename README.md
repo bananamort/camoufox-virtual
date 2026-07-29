@@ -1,79 +1,31 @@
----
-title: minimal-playwright-experiment
-emoji: 💻
-colorFrom: blue
-colorTo: red
-sdk: docker
-app_file: app/server.py
-pinned: false
----
+# Minimal Camoufox Interactive Instance (Docker)
 
-# Minimal Browser Screenshot Experiment
-
-This web application allows taking screenshots of websites using a headless browser and displaying them directly in the user interface.
+A standalone Docker application running a manually controllable Camoufox browser instance over the `/instance` URL path.
 
 ## Features
 
-- Simple and responsive web interface
-- URL input with default value pointing to Open LLM Leaderboard
-- Screenshot capture via Playwright (Chromium browser)
-- Display of results in the interface
+- **Interactive Remote Control**: Real-time VNC-over-WebSocket desktop streaming (mouse, keyboard, scrolling).
+- **Simple UI**: Single-page web UI at `/instance` with Start and Stop buttons to control browser lifecycle on demand.
+- **Camoufox Engine**: Anti-detect browser engine preconfigured with extensions support.
 
-## Technologies Used
+## Docker Usage
 
-- **Backend**: FastAPI, Playwright
-- **Frontend**: HTML/JS with Tailwind CSS
-- **Dependency Management**: Poetry
-- **Deployment**: Docker, Hugging Face Spaces
-
-## Local Installation
-
-### Prerequisites
-
-- Python 3.10+
-- Poetry
-- Docker (optional)
-
-### Installation with Poetry
-
+### Build the Image
 ```bash
-# Clone the repository
-git clone [repo-url]
-cd minimal-browser-screenshot-experiment
-
-# Install dependencies
-poetry install
-
-# Install Playwright browsers
-poetry run playwright install chromium
-poetry run playwright install-deps chromium
-
-# Launch the application
-poetry run uvicorn app.server:app --host 0.0.0.0 --port 7860
+docker build -t minimal-camoufox-experiment .
 ```
 
-### Using Docker
-
+### Run the Container
 ```bash
-# Build the Docker image
-docker build -t minimal-browser-screenshot .
-
-# Run the container
-docker run -p 7860:7860 minimal-browser-screenshot
+docker run -d -p 7860:7860 --name camoufox-app minimal-camoufox-experiment
 ```
 
-## Deployment on Hugging Face Spaces
+Access the interface at `http://localhost:7860/instance`.
 
-This application is designed to be easily deployed on a Hugging Face Space.
+## Local Setup (without Docker)
 
-1. Create a new Docker-type Space
-2. Associate this GitHub repository with your Space
-3. The Space will automatically use the provided Dockerfile to build and deploy the application
-
-## Usage
-
-1. Access the application through your browser
-2. Enter the URL of the site you want to screenshot (default: Open LLM Leaderboard)
-3. Click "Take a screenshot"
-4. Wait a few seconds for the headless browser to load the page and take the screenshot
-5. The screenshot appears in the interface
+```bash
+pip install -r requirements.txt
+python -m camoufox fetch
+uvicorn app.server:app --host 0.0.0.0 --port 7860
+```
