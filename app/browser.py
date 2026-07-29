@@ -166,9 +166,10 @@ async def launch_browser_context(
         persistent_context=True,
         user_data_dir=str(profile_dir),
         addons=addons,
-        viewport=None,
+        window_size=(1920, 1080),
+        screen={"width": 1920, "height": 1080},
+        viewport={"width": 1920, "height": 1080},
         extra_prefs=extra_prefs,
-        args=["--start-maximized"],
     ) as context:
         page = context.pages[0] if context.pages else await context.new_page()
         log.info(
@@ -186,7 +187,6 @@ async def run_interactive_instance(profile_label: str = "interactive") -> None:
     async with launch_browser_context(profile_label=profile_label) as (_, context, page):
         log.info("Navigating initial tab to about:blank")
         await page.goto("about:blank")
-        log.info("Camoufox headful instance is active and ready.")
         while True:
             await asyncio.sleep(1)
 
