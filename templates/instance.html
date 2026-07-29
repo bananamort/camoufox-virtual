@@ -16,7 +16,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    header { background: var(--panel); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+    header { background: var(--panel); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; }
     .brand { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
     .controls { display: flex; align-items: center; gap: 12px; }
     .status { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 20px; }
@@ -28,8 +28,9 @@
     .btn-stop { background: var(--red); color: white; }
     .btn-paste { background: var(--blue); color: white; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    main { flex: 1; position: relative; background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    main { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; width: 100%; height: calc(100vh - 56px); }
     #vnc-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    #vnc-container canvas { width: 100% !important; height: 100% !important; object-fit: fill !important; display: block !important; }
   </style>
 </head>
 <body>
