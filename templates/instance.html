@@ -12,19 +12,21 @@
       --muted: #94a3b8;
       --green: #10b981;
       --red: #ef4444;
+      --blue: #3b82f6;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
     header { background: var(--panel); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
     .brand { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-    .controls { display: flex; align-items: center; gap: 16px; }
+    .controls { display: flex; align-items: center; gap: 12px; }
     .status { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 20px; }
     .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
     .status.running .dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
     .status.stopped .dot { background: var(--red); }
-    .btn { padding: 8px 18px; border-radius: 8px; font-weight: 600; font-size: 0.875rem; border: none; cursor: pointer; transition: opacity 0.2s; }
+    .btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.875rem; border: none; cursor: pointer; transition: opacity 0.2s; }
     .btn-start { background: var(--green); color: white; }
     .btn-stop { background: var(--red); color: white; }
+    .btn-paste { background: var(--blue); color: white; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
     main { flex: 1; position: relative; background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     #vnc-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
@@ -41,6 +43,7 @@
         <span class="dot"></span>
         <span id="status-text">Stopped</span>
       </div>
+      <button id="btn-paste" class="btn btn-paste" onclick="pasteClipboard()" title="Paste text from your clipboard into the browser">Paste Text</button>
       <button id="btn-start" class="btn btn-start" onclick="startInstance()">Start</button>
       <button id="btn-stop" class="btn btn-stop" onclick="stopInstance()" disabled>Stop</button>
     </div>
@@ -113,6 +116,31 @@
       }
     };
 
+    window.pasteClipboard = async function() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && rfb) {
+          rfb.clipboardPasteFrom(text);
+          console.log("Pasted clipboard text to instance.");
+        } else if (!text) {
+          const userText = prompt("Enter text to paste into instance:");
+          if (userText && rfb) rfb.clipboardPasteFrom(userText);
+        }
+      } catch (err) {
+        const userText = prompt("Enter text to paste into instance:");
+        if (userText && rfb) rfb.clipboardPasteFrom(userText);
+      }
+    };
+
+    // Auto-listen to paste events on window
+    window.addEventListener('paste', (e) => {
+      if (!rfb) return;
+      const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+      if (text) {
+        rfb.clipboardPasteFrom(text);
+      }
+    });
+
     function connectVNC() {
       if (rfb) return;
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -121,6 +149,14 @@
         rfb = new RFB(vncContainer, wsUrl, { wsProtocols: ['binary'] });
         rfb.scaleViewport = true;
         rfb.resizeSession = true;
+
+        // Enable clipboard receiver
+        rfb.addEventListener('clipboard', (e) => {
+          if (e.detail && e.detail.text) {
+            navigator.clipboard.writeText(e.detail.text).catch(() => {});
+          }
+        });
+
         rfb.addEventListener('connect', () => overlay.classList.add('hidden'));
         rfb.addEventListener('disconnect', () => { rfb = null; });
       } catch (e) {
