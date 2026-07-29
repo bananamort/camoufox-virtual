@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcups2 \
     libdrm2 \
     libdbus-1-3 \
+    dbus-x11 \
     libxkbcommon0 \
     libx11-6 \
     libxcomposite1 \
