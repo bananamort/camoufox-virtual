@@ -9,12 +9,35 @@ log = logging.getLogger(__name__)
 procs = []
 
 
+def _ensure_openbox_config():
+    try:
+        config_dir = os.path.expanduser("~/.config/openbox")
+        os.makedirs(config_dir, exist_ok=True)
+        rc_xml = os.path.join(config_dir, "rc.xml")
+        content = """<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <applications>
+    <application class="*">
+      <decor>no</decor>
+      <maximized>yes</maximized>
+      <position force="yes"><x>0</x><y>0</y></position>
+    </application>
+  </applications>
+</openbox_config>"""
+        with open(rc_xml, "w") as f:
+            f.write(content)
+    except Exception as e:
+        log.warning("Could not write openbox config: %s", e)
+
+
 def start_display(display: str = ":99", width: int = 1920, height: int = 1080):
     global procs
     if is_display_running():
         return
     os.environ["DISPLAY"] = display
     log.info("Starting virtual display %s (%dx%d)", display, width, height)
+
+    _ensure_openbox_config()
 
     if shutil.which("Xvfb"):
         p_xvfb = subprocess.Popen(
