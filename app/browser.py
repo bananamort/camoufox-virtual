@@ -179,21 +179,13 @@ async def launch_browser_context(
 
 
 async def run_interactive_instance(profile_label: str = "interactive") -> None:
-    """Entry point to start the headful browser instance maximized."""
+    """Entry point to start the headful browser instance."""
     display = os.getenv("DISPLAY", ":99")
     log.info("Launching headful Camoufox browser on display %s...", display)
     async with launch_browser_context(profile_label=profile_label) as (_, context, page):
         log.info("Navigating initial tab to about:blank")
         await page.goto("about:blank")
         while True:
-            try:
-                subprocess.run(
-                    ["wmctrl", "-r", ":ACTIVE:", "-b", "add,maximized_vert,maximized_horz"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-            except Exception:
-                pass
             await asyncio.sleep(1)
 
 
