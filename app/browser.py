@@ -17,6 +17,10 @@ from typing import AsyncGenerator, List, Optional, Tuple, Any
 
 from camoufox.async_api import AsyncCamoufox
 
+# Prevent Firefox container tab/sandbox crashes
+os.environ["MOZ_DISABLE_CONTENT_SANDBOX"] = "1"
+os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
+
 log = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -153,12 +157,14 @@ async def launch_browser_context(
 
     addons = [str(p) for p in extension_paths] if extension_paths else None
 
-    # Disable Firefox full-screen warning notification overlay
+    # Disable Firefox full-screen warning and container rendering crashes
     firefox_user_prefs = {
         "full-screen-api.warning.timeout": 0,
         "full-screen-api.warning.delay": -1,
         "full-screen-api.transition-duration.enter": "0 0",
         "full-screen-api.transition-duration.leave": "0 0",
+        "layers.acceleration.disabled": True,
+        "gfx.webrender.software": True,
     }
 
     async with AsyncCamoufox(
@@ -204,6 +210,8 @@ def start_instance() -> dict:
 
     env = os.environ.copy()
     env["DISPLAY"] = os.getenv("DISPLAY", ":99")
+    env["MOZ_DISABLE_CONTENT_SANDBOX"] = "1"
+    env["LIBGL_ALWAYS_SOFTWARE"] = "1"
     _browser_proc = subprocess.Popen([sys.executable, "-m", "app.browser"], env=env)
     return {"status": "running"}
 
