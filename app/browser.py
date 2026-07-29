@@ -166,8 +166,6 @@ async def launch_browser_context(
         persistent_context=True,
         user_data_dir=str(profile_dir),
         addons=addons,
-        window_size=(1920, 1080),
-        viewport={"width": 1920, "height": 1080},
         extra_prefs=extra_prefs,
         args=["-width", "1920", "-height", "1080"],
     ) as context:
@@ -241,5 +239,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     try:
         asyncio.run(run_interactive_instance())
-    except (KeyboardInterrupt, SystemExit):
-        log.info("Camoufox interactive browser exiting.")
+    except Exception as e:
+        log.error("Camoufox interactive browser error: %s", e, exc_info=True)

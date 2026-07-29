@@ -61,7 +61,7 @@ def start_display(display: str = ":99", width: int = 1920, height: int = 1080):
 
     if shutil.which("x11vnc"):
         p_vnc = subprocess.Popen(
-            ["x11vnc", "-display", display, "-rfbport", "5900", "-shared", "-forever", "-nopw", "-bg", "-wait", "50"],
+            ["x11vnc", "-display", display, "-rfbport", "5900", "-shared", "-forever", "-nopw", "-wait", "50"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
