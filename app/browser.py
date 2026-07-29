@@ -154,7 +154,7 @@ async def launch_browser_context(
     addons = [str(p) for p in extension_paths] if extension_paths else None
 
     # Disable Firefox full-screen warning notification overlay
-    extra_prefs = {
+    firefox_user_prefs = {
         "full-screen-api.warning.timeout": 0,
         "full-screen-api.warning.delay": -1,
         "full-screen-api.transition-duration.enter": "0 0",
@@ -166,7 +166,7 @@ async def launch_browser_context(
         persistent_context=True,
         user_data_dir=str(profile_dir),
         addons=addons,
-        extra_prefs=extra_prefs,
+        firefox_user_prefs=firefox_user_prefs,
         args=["-width", "1920", "-height", "1080"],
     ) as context:
         page = context.pages[0] if context.pages else await context.new_page()
