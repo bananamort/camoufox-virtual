@@ -31,9 +31,6 @@ UNPACKED_EXTENSIONS_DIR = Path(
 PROFILE_BASE_DIR = Path(
     os.getenv("PROFILE_BASE_DIR", str(BASE_DIR / "data" / "profiles"))
 )
-BROWSER_NAVIGATION_TIMEOUT_MS = int(
-    os.getenv("BROWSER_NAVIGATION_TIMEOUT_MS", "60000")
-)
 
 _SKIP_DIR_NAMES = frozenset({"scripts", "__pycache__", ".git"})
 
@@ -161,9 +158,10 @@ async def launch_browser_context(
         persistent_context=True,
         user_data_dir=str(profile_dir),
         addons=addons,
+        viewport=None,
+        args=["--start-maximized", "--width=1920", "--height=1080"],
     ) as context:
         page = context.pages[0] if context.pages else await context.new_page()
-        page.set_default_timeout(BROWSER_NAVIGATION_TIMEOUT_MS)
         log.info(
             "Camoufox launched (profile=%s extensions=%d)",
             profile_dir,
@@ -173,12 +171,16 @@ async def launch_browser_context(
 
 
 async def run_interactive_instance(profile_label: str = "interactive") -> None:
-    """Entry point to start the headful browser instance and keep it active."""
+    """Entry point to start the headful browser instance maximized."""
     display = os.getenv("DISPLAY", ":99")
     log.info("Launching headful Camoufox browser on display %s...", display)
     async with launch_browser_context(profile_label=profile_label) as (_, context, page):
         log.info("Navigating initial tab to about:blank")
         await page.goto("about:blank")
+        try:
+            await page.evaluate("window.moveTo(0, 0); window.resizeTo(screen.availWidth, screen.availHeight);")
+        except Exception:
+            pass
         log.info("Camoufox headful instance is active and ready.")
         while True:
             await asyncio.sleep(1)

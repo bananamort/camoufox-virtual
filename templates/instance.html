@@ -33,10 +33,7 @@
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
     main { flex: 1; position: relative; background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     #vnc-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-    .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(15,23,42,0.9); z-index: 10; gap: 16px; }
-    .overlay.hidden { display: none; }
     
-    /* Floating button visible in fullscreen mode on hover */
     .fullscreen-exit-btn {
       position: fixed;
       top: 12px;
@@ -82,11 +79,6 @@
 
   <main>
     <div id="vnc-container"></div>
-    <div id="overlay" class="overlay">
-      <h2>Browser Instance is Stopped</h2>
-      <p style="color: var(--muted);">Click "Start" to launch the browser on your virtual display.</p>
-      <button class="btn btn-start" onclick="startInstance()">Start Browser</button>
-    </div>
   </main>
 
   <script type="module">
@@ -94,7 +86,6 @@
 
     let rfb = null;
     const vncContainer = document.getElementById('vnc-container');
-    const overlay = document.getElementById('overlay');
     const statusBadge = document.getElementById('status-badge');
     const statusText = document.getElementById('status-text');
     const btnStart = document.getElementById('btn-start');
@@ -115,11 +106,9 @@
       if (status === 'running') {
         btnStart.disabled = true;
         btnStop.disabled = false;
-        overlay.classList.add('hidden');
       } else {
         btnStart.disabled = false;
         btnStop.disabled = true;
-        overlay.classList.remove('hidden');
         if (rfb) { try { rfb.disconnect(); } catch(e){} rfb = null; }
       }
     }
@@ -202,7 +191,6 @@
           }
         });
 
-        rfb.addEventListener('connect', () => overlay.classList.add('hidden'));
         rfb.addEventListener('disconnect', () => { rfb = null; });
       } catch (e) {
         console.error("VNC connect error:", e);
