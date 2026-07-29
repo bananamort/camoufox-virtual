@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     x11vnc \
     wmctrl \
     xdotool \
+    xclip \
+    xsel \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \

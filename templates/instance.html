@@ -107,25 +107,36 @@
       }
     };
 
+    function sendPasteToVNC(text) {
+      if (!rfb || !text) return;
+      rfb.clipboardPasteFrom(text);
+      setTimeout(() => {
+        rfb.sendKey(0xffe3, 'ControlLeft', true);
+        rfb.sendKey(0x0076, 'KeyV', true);
+        rfb.sendKey(0x0076, 'KeyV', false);
+        rfb.sendKey(0xffe3, 'ControlLeft', false);
+      }, 100);
+    }
+
     window.pasteClipboard = async function() {
       try {
         const text = await navigator.clipboard.readText();
-        if (text && rfb) {
-          rfb.clipboardPasteFrom(text);
-        } else if (!text) {
+        if (text) {
+          sendPasteToVNC(text);
+        } else {
           const userText = prompt("Enter text to paste into instance:");
-          if (userText && rfb) rfb.clipboardPasteFrom(userText);
+          if (userText) sendPasteToVNC(userText);
         }
       } catch (err) {
         const userText = prompt("Enter text to paste into instance:");
-        if (userText && rfb) rfb.clipboardPasteFrom(userText);
+        if (userText) sendPasteToVNC(userText);
       }
     };
 
     window.addEventListener('paste', (e) => {
       if (!rfb) return;
       const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
-      if (text) rfb.clipboardPasteFrom(text);
+      if (text) sendPasteToVNC(text);
     });
 
     window.addEventListener('keydown', async (e) => {
@@ -134,10 +145,10 @@
         e.preventDefault();
         try {
           const text = await navigator.clipboard.readText();
-          if (text) rfb.clipboardPasteFrom(text);
+          if (text) sendPasteToVNC(text);
         } catch (err) {
           const userText = prompt("Enter text to paste into instance:");
-          if (userText) rfb.clipboardPasteFrom(userText);
+          if (userText) sendPasteToVNC(userText);
         }
       }
     }, true);
