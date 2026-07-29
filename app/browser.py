@@ -157,7 +157,7 @@ async def launch_browser_context(
 
     addons = [str(p) for p in extension_paths] if extension_paths else None
 
-    # Disable Firefox full-screen warning, container crashes, and Alt-menu focus
+    # Disable Firefox full-screen warning, container crashes, and Alt/Cmd menu shortcuts
     firefox_user_prefs = {
         "full-screen-api.warning.timeout": 0,
         "full-screen-api.warning.delay": -1,
@@ -166,6 +166,8 @@ async def launch_browser_context(
         "layers.acceleration.disabled": True,
         "gfx.webrender.software": True,
         "ui.key.menuAccessKeyFocuses": False,
+        "ui.key.menuAccessKey": 0,
+        "ui.key.generalAccessKey": 0,
     }
 
     async with AsyncCamoufox(

@@ -143,6 +143,8 @@
       if (!rfb) return;
       if ((e.metaKey || e.ctrlKey) && (e.key === 'v' || e.key === 'V')) {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         try {
           const text = await navigator.clipboard.readText();
           if (text) sendPasteToVNC(text);
