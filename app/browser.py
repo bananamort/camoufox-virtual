@@ -153,13 +153,22 @@ async def launch_browser_context(
 
     addons = [str(p) for p in extension_paths] if extension_paths else None
 
+    # Disable Firefox full-screen warning notification overlay
+    extra_prefs = {
+        "full-screen-api.warning.timeout": 0,
+        "full-screen-api.warning.delay": -1,
+        "full-screen-api.transition-duration.enter": "0 0",
+        "full-screen-api.transition-duration.leave": "0 0",
+    }
+
     async with AsyncCamoufox(
         headless=False,
         persistent_context=True,
         user_data_dir=str(profile_dir),
         addons=addons,
         viewport=None,
-        args=["--start-maximized", "--width=1920", "--height=1080"],
+        extra_prefs=extra_prefs,
+        args=["--start-maximized"],
     ) as context:
         page = context.pages[0] if context.pages else await context.new_page()
         log.info(
@@ -177,10 +186,6 @@ async def run_interactive_instance(profile_label: str = "interactive") -> None:
     async with launch_browser_context(profile_label=profile_label) as (_, context, page):
         log.info("Navigating initial tab to about:blank")
         await page.goto("about:blank")
-        try:
-            await page.evaluate("window.moveTo(0, 0); window.resizeTo(screen.availWidth, screen.availHeight);")
-        except Exception:
-            pass
         log.info("Camoufox headful instance is active and ready.")
         while True:
             await asyncio.sleep(1)
